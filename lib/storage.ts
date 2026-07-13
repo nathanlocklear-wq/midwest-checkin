@@ -2,30 +2,61 @@ import { Attendee } from "@/types/attendee";
 
 const STORAGE_KEY = "midwest-checkin-attendees";
 
-export function saveAttendees(attendees: Attendee[]) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(attendees));
-}
-
 export function loadAttendees(): Attendee[] {
   if (typeof window === "undefined") return [];
 
-  const data = localStorage.getItem(STORAGE_KEY);
+  try {
+    const data = localStorage.getItem(STORAGE_KEY);
 
-  if (!data) return [];
+    if (!data) return [];
 
-  return JSON.parse(data);
+    return JSON.parse(data) as Attendee[];
+  } catch (error) {
+    console.error("Failed to load attendees:", error);
+    return [];
+  }
 }
 
-export function updateAttendee(id: string) {
+export function saveAttendees(attendees: Attendee[]) {
+  if (typeof window === "undefined") return;
+
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(attendees));
+}
+
+export function replaceAttendees(attendees: Attendee[]) {
+  saveAttendees(attendees);
+}
+
+export function clearAttendees() {
+  if (typeof window === "undefined") return;
+
+  localStorage.removeItem(STORAGE_KEY);
+}
+
+export function getAttendee(id: string) {
+  return loadAttendees().find((a) => a.id === id);
+}
+
+export function findAttendeeByEmail(email: string) {
+  return loadAttendees().find(
+    (attendee) =>
+      attendee.email.trim().toLowerCase() ===
+      email.trim().toLowerCase()
+  );
+}
+
+export function checkInAttendee(id: string): Attendee[] {
   const attendees = loadAttendees();
 
   const updated = attendees.map((attendee) => {
     if (attendee.id !== id) return attendee;
 
+    if (attendee.checkedIn) return attendee;
+
     return {
       ...attendee,
       checkedIn: true,
-      checkedInAt: new Date().toLocaleTimeString(),
+      checkedInAt: new Date().toISOString(),
     };
   });
 
@@ -34,6 +65,54 @@ export function updateAttendee(id: string) {
   return updated;
 }
 
-export function clearAttendees() {
-  localStorage.removeItem(STORAGE_KEY);
+export function checkInAttendeeByEmail(
+  email: string
+): Attendee | undefined {
+  const attendees = loadAttendees();
+
+  let checkedInAttendee: Attendee | undefined;
+
+  const updated = attendees.map((attendee) => {
+    if (
+      attendee.email.trim().toLowerCase() !==
+      email.trim().toLowerCase()
+    ) {
+      return attendee;
+    }
+
+    if (attendee.checkedIn) {
+      checkedInAttendee = attendee;
+      return attendee;
+    }
+
+    checkedInAttendee = {
+      ...attendee,
+      checkedIn: true,
+      checkedInAt: new Date().toISOString(),
+    };
+
+    return checkedInAttendee;
+  });
+
+  saveAttendees(updated);
+
+  return checkedInAttendee;
+}
+
+export function undoCheckIn(id: string): Attendee[] {
+  const attendees = loadAttendees();
+
+  const updated = attendees.map((attendee) => {
+    if (attendee.id !== id) return attendee;
+
+    return {
+      ...attendee,
+      checkedIn: false,
+      checkedInAt: undefined,
+    };
+  });
+
+  saveAttendees(updated);
+
+  return updated;
 }

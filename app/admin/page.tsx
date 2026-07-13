@@ -5,47 +5,58 @@ import { useEffect, useMemo, useState } from "react";
 import { Attendee } from "@/types/attendee";
 import {
   loadAttendees,
-  updateAttendee,
+  checkInAttendee,
+  clearAttendees,
 } from "@/lib/storage";
 
+import AdminToolbar from "@/components/AdminToolbar";
 import AttendeeCard from "@/components/AttendeeCard";
-import StatsBar from "@/components/StatsBar";
+import StatsCards from "@/components/StatsCards";
 import SearchBar from "@/components/SearchBar";
-import FilterBar from "@/components/FilterBar";
+import FilterBar, { Filter } from "@/components/FilterBar";
+import ImportWizard from "@/components/ImportWizard";
 
-type Filter =
-  | "ALL"
-  | "NEEDS_SHIRT"
-  | "SPECIAL"
-  | "STANDARD"
-  | "LATE"
-  | "NONE"
-  | "CHECKED_IN";
-
-export default function Home() {
+export default function AdminPage() {
   const [attendees, setAttendees] = useState<Attendee[]>([]);
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<Filter>("ALL");
 
-  useEffect(() => {
+  function refresh() {
     setAttendees(loadAttendees());
+  }
+
+  useEffect(() => {
+    refresh();
   }, []);
 
-  function checkIn(id: string) {
-    const updated = updateAttendee(id);
+  function handleCheckIn(id: string) {
+    const updated = checkInAttendee(id);
     setAttendees(updated);
   }
 
+  function handleClearStorage() {
+    if (!confirm("Clear all attendee data from this browser?")) {
+      return;
+    }
+
+    clearAttendees();
+    setAttendees([]);
+  }
+
   const filtered = useMemo(() => {
-    const term = search.toLowerCase();
+    const term = search.trim().toLowerCase();
 
     return attendees
       .filter((a) => {
-        const matchesSearch =
-          a.fullName.toLowerCase().includes(term) ||
-          a.email.toLowerCase().includes(term) ||
-          a.company.toLowerCase().includes(term) ||
-          a.ticketType.toLowerCase().includes(term);
+        const matchesSearch = [
+          a.fullName,
+          a.email,
+          a.company,
+          a.ticketType,
+        ]
+          .join(" ")
+          .toLowerCase()
+          .includes(term);
 
         if (!matchesSearch) return false;
 
@@ -75,29 +86,57 @@ export default function Home() {
             return true;
         }
       })
-      .sort((a, b) => {
-        if (a.checkedIn === b.checkedIn) return 0;
-        return a.checkedIn ? 1 : -1;
-      });
+      .sort((a, b) => Number(a.checkedIn) - Number(b.checkedIn));
   }, [attendees, search, filter]);
+
+  const checkedIn = attendees.filter((a) => a.checkedIn).length;
+
+const special = attendees.filter(
+  (a) => a.shirtType === "SPECIAL"
+).length;
+
+const standard = attendees.filter(
+  (a) => a.shirtType === "STANDARD"
+).length;
+
+const late = attendees.filter(
+  (a) => a.shirtType === "LATE"
+).length;
+
+const none = attendees.filter(
+  (a) => a.shirtType === "NONE"
+).length;
 
   return (
     <main className="min-h-screen bg-slate-100 text-slate-900">
-
-      <div className="max-w-6xl mx-auto p-8">
-
-        <h1 className="text-5xl font-bold text-center text-blue-900 mb-2">
-          MidwestTechTalk Check-In
+      <div className="mx-auto max-w-6xl p-8">
+        <h1 className="mb-2 text-center text-5xl font-bold text-blue-900">
+          MidwestTechTalk Admin
         </h1>
 
-        <p className="text-center text-gray-600 mb-8">
-          Search attendees and check them in
+        <p className="mb-8 text-center text-gray-600">
+          Manage conference attendees
         </p>
 
-        <StatsBar
+        <AdminToolbar
           total={attendees.length}
-          checkedIn={attendees.filter(a => a.checkedIn).length}
+          checkedIn={checkedIn}
+          onRefresh={refresh}
+          onClear={handleClearStorage}
         />
+
+<ImportWizard
+  onImport={refresh}
+/>
+
+        <StatsCards
+  total={attendees.length}
+  checkedIn={checkedIn}
+  special={special}
+  standard={standard}
+  late={late}
+  none={none}
+/>
 
         <SearchBar
           value={search}
@@ -114,19 +153,15 @@ export default function Home() {
         </div>
 
         <div className="space-y-5">
-
           {filtered.map((attendee) => (
             <AttendeeCard
               key={attendee.id}
               attendee={attendee}
-              onCheckIn={checkIn}
+              onCheckIn={handleCheckIn}
             />
           ))}
-
         </div>
-
       </div>
-
     </main>
   );
 }

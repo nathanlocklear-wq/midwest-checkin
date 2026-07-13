@@ -11,49 +11,13 @@ export default function AttendeeCard({
   attendee,
   onCheckIn,
 }: Props) {
-  function shirtInfo() {
-    switch (attendee.shirtType) {
-      case "SPECIAL":
-        return {
-          color: "bg-purple-50 border-purple-500",
-          badge: "🟣 SPECIAL SHIRT",
-          text: "text-purple-700",
-        };
-
-      case "STANDARD":
-        return {
-          color: "bg-green-50 border-green-500",
-          badge: "🟢 STANDARD SHIRT",
-          text: "text-green-700",
-        };
-
-      case "LATE":
-        return {
-          color: "bg-orange-50 border-orange-500",
-          badge: "🟠 LATE - NO SHIRT TODAY",
-          text: "text-orange-700",
-        };
-
-      default:
-        return {
-          color: "bg-gray-100 border-gray-400",
-          badge: "⚫ NO SHIRT",
-          text: "text-gray-700",
-        };
-    }
-  }
-
-  const shirt = shirtInfo();
-
   return (
-    <div
-      className={`rounded-xl border-2 shadow-lg p-6 ${shirt.color}`}
-    >
-      <div className="flex flex-col md:flex-row md:justify-between gap-6">
+    <div className="rounded-xl bg-white p-6 shadow transition hover:shadow-lg">
+      <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
 
         <div className="flex-1">
 
-          <h2 className="text-2xl font-bold text-slate-900">
+          <h2 className="text-2xl font-bold">
             {attendee.fullName}
           </h2>
 
@@ -61,80 +25,46 @@ export default function AttendeeCard({
             {attendee.company}
           </p>
 
-          <div className="mt-5 grid grid-cols-2 gap-4">
+          <p className="text-sm text-slate-400">
+            {attendee.email}
+          </p>
 
-            <div>
-              <div className="text-sm text-gray-500">
-                Ticket
-              </div>
+          <div className="mt-5 flex flex-wrap gap-2">
 
-              <div className="font-semibold">
-                {attendee.ticketType}
-              </div>
-            </div>
+            <span className="rounded-full bg-blue-100 px-3 py-1 text-sm font-medium text-blue-700">
+              {attendee.ticketType}
+            </span>
 
-            <div>
-              <div className="text-sm text-gray-500">
-                Shirt Size
-              </div>
+            <span className="rounded-full bg-purple-100 px-3 py-1 text-sm font-medium text-purple-700">
+              {attendee.shirtType}
+            </span>
 
-              <div className="font-semibold">
-                {attendee.shirtSize || "-"}
-              </div>
-            </div>
+            <span className="rounded-full bg-slate-200 px-3 py-1 text-sm">
+              {attendee.shirtSize}
+            </span>
 
-          </div>
-
-          <div className="mt-6">
-
-            <div className={`font-bold ${shirt.text}`}>
-              {shirt.badge}
-            </div>
-
-            {(attendee.shirtReasons ?? []).length > 0 && (
-              <div className="mt-3">
-
-                <div className="font-semibold">
-                  Reasons
-                </div>
-
-                <ul className="list-disc list-inside text-sm">
-
-                  {(attendee.shirtReasons ?? []).map((reason) => (
-                    <li key={reason}>
-                      {reason}
-                    </li>
-                  ))}
-
-                </ul>
-
-              </div>
-            )}
+            {(attendee.shirtReasons ?? []).map((reason) => (
+  <span
+    key={reason}
+    className="rounded-full bg-orange-100 px-3 py-1 text-sm text-orange-700"
+  >
+    {reason}
+  </span>
+))}
 
           </div>
-
         </div>
 
-        <div className="flex items-center">
+        <div>
 
           {attendee.checkedIn ? (
-            <div className="text-center">
-
-              <div className="bg-gray-700 text-white rounded-xl px-8 py-4 font-bold">
-                ✔ CHECKED IN
-              </div>
-
-              {attendee.checkedInAt && (
-                <div className="text-sm mt-2 text-gray-600">
-                  {attendee.checkedInAt}
-                </div>
-              )}
-
+            <div className="rounded-lg bg-green-100 px-6 py-4 text-center font-semibold text-green-700">
+              ✅ Checked In
             </div>
           ) : (
             <button
               onClick={() => onCheckIn(attendee.id)}
-              className="bg-blue-700 hover:bg-blue-800 text-white rounded-xl px-8 py-4 font-bold text-lg"
+              className="rounded-lg bg-blue-600 px-8 py-4 text-lg font-semibold text-white transition hover:bg-blue-700"
             >
               Check In
             </button>

@@ -5,8 +5,10 @@ export type ShirtType =
   | "NONE";
 
 export interface Attendee {
+  // Unique attendee ID (Eventbrite Attendee #)
   id: string;
 
+  // Basic information
   firstName: string;
   lastName: string;
   fullName: string;
@@ -14,15 +16,20 @@ export interface Attendee {
   email: string;
   company: string;
 
+  // Registration
   ticketType: string;
 
+  // Conference
   shirtSize: string;
 
-  shirtType: ShirtType;
+  // Eventbrite "Are you presenting?"
+  presenting: boolean;
 
+  // Calculated by determineShirt()
+  shirtType: ShirtType;
   shirtReasons: string[];
 
+  // Check-in
   checkedIn: boolean;
-
   checkedInAt?: string;
 }
