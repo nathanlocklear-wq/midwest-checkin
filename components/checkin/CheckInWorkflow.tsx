@@ -8,12 +8,13 @@ import SuccessView from "@/components/checkin/SuccessView";
 import NotFoundView from "@/components/checkin/NotFoundView";
 
 import {
-  findAttendeeByEmail,
-  checkInAttendeeByEmail,
-} from "@/lib/storage";
+  findAttendee,
+  checkInAttendee,
+} from "@/lib/attendees";
 
 import { parseVCard } from "@/lib/vcard";
-import type { Attendee } from "@/types/attendee";
+
+import type { Attendee } from "@/lib/attendees";
 
 type State =
   | "SCANNING"
@@ -31,7 +32,7 @@ export default function CheckInWorkflow() {
     setState("SCANNING");
   }, []);
 
-  const handleScan = useCallback((text: string) => {
+  const handleScan = useCallback(async (text: string) => {
     const card = parseVCard(text);
 
     if (!card) {
@@ -39,7 +40,7 @@ export default function CheckInWorkflow() {
       return;
     }
 
-    const found = findAttendeeByEmail(card.email);
+    const found = await findAttendee(card.email);
 
     if (!found) {
       setState("NOT_FOUND");
@@ -48,7 +49,7 @@ export default function CheckInWorkflow() {
 
     setAttendee(found);
 
-    if (found.checkedIn) {
+    if (found.checked_in) {
       setState("ALREADY");
       return;
     }
@@ -56,12 +57,10 @@ export default function CheckInWorkflow() {
     setState("FOUND");
   }, []);
 
-  function handleCheckIn() {
+  async function handleCheckIn() {
     if (!attendee) return;
 
-    const updated = checkInAttendeeByEmail(attendee.email);
-
-    if (!updated) return;
+    const updated = await checkInAttendee(attendee.id);
 
     setAttendee(updated);
     setState("SUCCESS");
@@ -71,7 +70,7 @@ export default function CheckInWorkflow() {
     case "FOUND":
       return (
         <AttendeeView
-          attendee={attendee!}
+          attendee={attendee}
           onCheckIn={handleCheckIn}
           onScanAgain={scanAgain}
         />
@@ -80,7 +79,7 @@ export default function CheckInWorkflow() {
     case "SUCCESS":
       return (
         <SuccessView
-          attendee={attendee!}
+          attendee={attendee}
           onNext={scanAgain}
         />
       );
@@ -95,9 +94,7 @@ export default function CheckInWorkflow() {
     case "ALREADY":
       return (
         <div className="space-y-6">
-
           <div className="rounded-2xl bg-yellow-400 p-10 text-center shadow">
-
             <div className="text-7xl">
               ⚠️
             </div>
@@ -107,16 +104,15 @@ export default function CheckInWorkflow() {
             </h1>
 
             <div className="mt-8 text-3xl font-bold">
-              {attendee?.fullName}
+              {attendee?.full_name}
             </div>
 
             <div className="mt-4 text-xl">
-              {attendee?.checkedInAt &&
+              {attendee?.checked_in_at &&
                 new Date(
-                  attendee.checkedInAt
+                  attendee.checked_in_at
                 ).toLocaleTimeString()}
             </div>
-
           </div>
 
           <button
@@ -125,14 +121,12 @@ export default function CheckInWorkflow() {
           >
             📷 Scan Another Badge
           </button>
-
         </div>
       );
 
     default:
       return (
         <div>
-
           <QRScanner
             active={true}
             onScan={handleScan}
@@ -141,7 +135,6 @@ export default function CheckInWorkflow() {
           <p className="mt-6 text-center text-xl text-white">
             Point the camera at a badge.
           </p>
-
         </div>
       );
   }

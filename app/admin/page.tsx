@@ -2,12 +2,11 @@
 
 import { useEffect, useMemo, useState } from "react";
 
-import { Attendee } from "@/types/attendee";
+import type { Attendee } from "@/lib/attendees";
 import {
-  loadAttendees,
+  getAttendees,
   checkInAttendee,
-  clearAttendees,
-} from "@/lib/storage";
+} from "@/lib/attendees";
 
 import AdminToolbar from "@/components/AdminToolbar";
 import AttendeeCard from "@/components/AttendeeCard";
@@ -20,28 +19,40 @@ export default function AdminPage() {
   const [attendees, setAttendees] = useState<Attendee[]>([]);
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<Filter>("ALL");
+  const [loading, setLoading] = useState(true);
 
-  function refresh() {
-    setAttendees(loadAttendees());
+  async function refresh() {
+    setLoading(true);
+
+    try {
+      const data = await getAttendees();
+      setAttendees(data);
+    } catch (error) {
+      console.error("Failed to load attendees:", error);
+    }
+
+    setLoading(false);
   }
 
   useEffect(() => {
     refresh();
   }, []);
 
-  function handleCheckIn(id: string) {
-    const updated = checkInAttendee(id);
-    setAttendees(updated);
+  async function handleCheckIn(id: string) {
+    try {
+      await checkInAttendee(id);
+      await refresh();
+    } catch (error) {
+      console.error("Check-in failed:", error);
+    }
   }
 
   function handleClearStorage() {
-    if (!confirm("Clear all attendee data from this browser?")) {
-      return;
-    }
-
-    clearAttendees();
-    setAttendees([]);
+    alert(
+      "Storage clearing is disabled. Attendees are now stored in Supabase."
+    );
   }
+
 
   const filtered = useMemo(() => {
     const term = search.trim().toLowerCase();
@@ -49,10 +60,9 @@ export default function AdminPage() {
     return attendees
       .filter((a) => {
         const matchesSearch = [
-          a.fullName,
+          a.full_name,
           a.email,
-          a.company,
-          a.ticketType,
+          a.company ?? "",
         ]
           .join(" ")
           .toLowerCase()
@@ -62,54 +72,66 @@ export default function AdminPage() {
 
         switch (filter) {
           case "SPECIAL":
-            return a.shirtType === "SPECIAL";
+            return a.shirt_type === "SPECIAL";
 
           case "STANDARD":
-            return a.shirtType === "STANDARD";
+            return a.shirt_type === "STANDARD";
 
           case "LATE":
-            return a.shirtType === "LATE";
+            return a.shirt_type === "LATE";
 
           case "NONE":
-            return a.shirtType === "NONE";
+            return a.shirt_type === "NONE";
 
           case "CHECKED_IN":
-            return a.checkedIn;
+            return a.checked_in;
 
           case "NEEDS_SHIRT":
             return (
-              a.shirtType === "SPECIAL" ||
-              a.shirtType === "STANDARD"
+              a.shirt_type === "SPECIAL" ||
+              a.shirt_type === "STANDARD"
             );
 
           default:
             return true;
         }
       })
-      .sort((a, b) => Number(a.checkedIn) - Number(b.checkedIn));
+      .sort(
+        (a, b) =>
+          Number(a.checked_in) - Number(b.checked_in)
+      );
   }, [attendees, search, filter]);
 
-  const checkedIn = attendees.filter((a) => a.checkedIn).length;
 
-const special = attendees.filter(
-  (a) => a.shirtType === "SPECIAL"
-).length;
+  const checkedIn = attendees.filter(
+    (a) => a.checked_in
+  ).length;
 
-const standard = attendees.filter(
-  (a) => a.shirtType === "STANDARD"
-).length;
 
-const late = attendees.filter(
-  (a) => a.shirtType === "LATE"
-).length;
+  const special = attendees.filter(
+    (a) => a.shirt_type === "SPECIAL"
+  ).length;
 
-const none = attendees.filter(
-  (a) => a.shirtType === "NONE"
-).length;
+
+  const standard = attendees.filter(
+    (a) => a.shirt_type === "STANDARD"
+  ).length;
+
+
+  const late = attendees.filter(
+    (a) => a.shirt_type === "LATE"
+  ).length;
+
+
+  const none = attendees.filter(
+    (a) => a.shirt_type === "NONE"
+  ).length;
+
 
   return (
     <main className="min-h-screen bg-slate-100 text-slate-900">
       <div className="mx-auto max-w-6xl p-8">
+
         <h1 className="mb-2 text-center text-5xl font-bold text-blue-900">
           MidwestTechTalk Admin
         </h1>
@@ -118,6 +140,7 @@ const none = attendees.filter(
           Manage conference attendees
         </p>
 
+
         <AdminToolbar
           total={attendees.length}
           checkedIn={checkedIn}
@@ -125,32 +148,41 @@ const none = attendees.filter(
           onClear={handleClearStorage}
         />
 
-<ImportWizard
-  onImport={refresh}
-/>
+
+        <ImportWizard
+          onImport={refresh}
+        />
+
 
         <StatsCards
-  total={attendees.length}
-  checkedIn={checkedIn}
-  special={special}
-  standard={standard}
-  late={late}
-  none={none}
-/>
+          total={attendees.length}
+          checkedIn={checkedIn}
+          special={special}
+          standard={standard}
+          late={late}
+          none={none}
+        />
+
 
         <SearchBar
           value={search}
           onChange={setSearch}
         />
 
+
         <FilterBar
           filter={filter}
           setFilter={setFilter}
         />
 
+
         <div className="mb-4 text-gray-600">
-          Showing {filtered.length} attendee(s)
+          {loading
+            ? "Loading attendees..."
+            : `Showing ${filtered.length} attendee(s)`
+          }
         </div>
+
 
         <div className="space-y-5">
           {filtered.map((attendee) => (
@@ -161,6 +193,7 @@ const none = attendees.filter(
             />
           ))}
         </div>
+
       </div>
     </main>
   );
