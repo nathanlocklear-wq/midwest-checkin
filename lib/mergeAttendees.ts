@@ -1,4 +1,4 @@
-import { Attendee } from "@/types/attendee";
+import type { Attendee } from "@/lib/attendees";
 
 export function mergeAttendees(
   eventbrite: any[],
@@ -6,7 +6,7 @@ export function mergeAttendees(
 ): Attendee[] {
   const memberLookup = new Map<string, any>();
 
-  // Create lookup by email
+  // Create HubSpot lookup by email
   hubspot.forEach((member) => {
     const email = String(member.Email || "")
       .trim()
@@ -26,78 +26,120 @@ export function mergeAttendees(
 
     const reasons: string[] = [];
 
-    const paymentMethod = String(member?.["Payment Method"] || "");
+    const paymentMethod = String(
+      member?.["Payment Method"] || ""
+    );
 
-    const ticketType = String(person["Ticket Type"] || "");
+    const ticketType = String(
+      person["Ticket Type"] || ""
+    );
 
     const presenting =
       String(person["Are you presenting?"] || "")
         .trim()
         .toLowerCase() === "yes";
 
-    // Memberships
-    if (paymentMethod.includes("District+")) {
+
+    if (
+      paymentMethod
+        .toLowerCase()
+        .includes("district+")
+    ) {
       reasons.push("District+");
     }
 
-    if (paymentMethod.includes("Attendee+")) {
+
+    if (
+      paymentMethod
+        .toLowerCase()
+        .includes("attendee+")
+    ) {
       reasons.push("Attendee+");
     }
 
-    // Ticket types
-    if (ticketType.includes("Presenter")) {
+
+    if (
+      ticketType
+        .toLowerCase()
+        .includes("presenter")
+    ) {
       reasons.push("Presenter");
     }
 
-    if (ticketType.includes("Committee")) {
+
+    if (
+      ticketType
+        .toLowerCase()
+        .includes("committee")
+    ) {
       reasons.push("Committee");
     }
 
-    // Presentation question
-    if (presenting && !reasons.includes("Presenter")) {
+
+    if (
+      presenting &&
+      !reasons.includes("Presenter")
+    ) {
       reasons.push("Presenting");
     }
 
-    // Determine shirt type
-    let shirtType: Attendee["shirtType"];
+
+    let shirtType:
+      | "SPECIAL"
+      | "STANDARD"
+      | "LATE"
+      | "NONE";
+
 
     if (reasons.length > 0) {
-      // District+, Attendee+, Presenter, Committee,
-      // or answered Yes to presenting
       shirtType = "SPECIAL";
-    } else if (ticketType.includes("Sponsor")) {
-      // Sponsors don't receive shirts
+    } else if (
+      ticketType
+        .toLowerCase()
+        .includes("sponsor")
+    ) {
       shirtType = "NONE";
-    } else if (ticketType.includes("LATE")) {
-      // Late attendees don't receive shirts
+    } else if (
+      ticketType
+        .toLowerCase()
+        .includes("late")
+    ) {
       shirtType = "LATE";
     } else {
-      // Normal in-person attendee
       shirtType = "STANDARD";
     }
 
+
     return {
-      id: String(index),
+      id: crypto.randomUUID(),
 
-      firstName: person["First Name"] || "",
+      first_name:
+        person["First Name"] || "",
 
-      lastName: person["Last Name"] || "",
+      last_name:
+        person["Last Name"] || "",
 
-      fullName: `${person["First Name"] || ""} ${person["Last Name"] || ""}`.trim(),
+      full_name:
+        `${person["First Name"] || ""} ${
+          person["Last Name"] || ""
+        }`.trim(),
 
       email,
 
-      company: person.Company || "",
+      company:
+        person.Company || null,
 
-      ticketType,
+      ticket_type:
+        ticketType,
 
-      shirtSize: person["T-Shirt Size"] || "",
+      shirt_type:
+        shirtType,
 
-      shirtType,
+      checked_in:
+        false,
 
-      shirtReasons: reasons,
-
-      checkedIn: false,
+      checked_in_at:
+        null,
     };
   });
 }

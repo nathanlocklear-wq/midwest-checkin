@@ -1,4 +1,4 @@
-import { Attendee } from "@/types/attendee";
+import type { Attendee } from "@/lib/attendees";
 
 function splitCsvLine(line: string): string[] {
   const result: string[] = [];
@@ -39,50 +39,57 @@ export function parseEventbriteCsv(csv: string): Attendee[] {
 
   const headers = splitCsvLine(lines[0]);
 
-  const column = (name: string) => headers.indexOf(name);
+  const column = (name: string) =>
+    headers.indexOf(name);
 
   const attendees: Attendee[] = [];
 
   for (let i = 1; i < lines.length; i++) {
     const cols = splitCsvLine(lines[i]);
 
-    const firstName = cols[column("First Name")] ?? "";
-    const lastName = cols[column("Last Name")] ?? "";
-    const email = cols[column("Email")] ?? "";
-    const company = cols[column("Company")] ?? "";
-    const ticketType = cols[column("Ticket Type")] ?? "";
-    const shirtSize = cols[column("T-Shirt Size")] ?? "";
+    const firstName =
+      cols[column("First Name")] ?? "";
 
-    const presenting =
-      (cols[column("Are you presenting?")] ?? "")
-        .trim()
-        .toLowerCase() === "yes";
+    const lastName =
+      cols[column("Last Name")] ?? "";
+
+    const email =
+      cols[column("Email")] ?? "";
+
+    const company =
+      cols[column("Company")] ?? "";
+
+    const ticketType =
+      cols[column("Ticket Type")] ?? "";
+
+    const shirtSize =
+      cols[column("T-Shirt Size")] ?? "";
 
     const id =
-      cols[column("Attendee #")] || crypto.randomUUID();
+      cols[column("Attendee #")] ||
+      crypto.randomUUID();
 
     attendees.push({
       id,
 
-      firstName,
-      lastName,
-      fullName: `${firstName} ${lastName}`.trim(),
+      first_name: firstName,
+
+      last_name: lastName,
+
+      full_name:
+        `${firstName} ${lastName}`.trim(),
 
       email,
-      company,
 
-      ticketType,
+      company: company || null,
 
-      shirtSize,
+      ticket_type: ticketType || null,
 
-      presenting,
+      shirt_type: "STANDARD",
 
-      // Temporary defaults.
-      // These will be replaced after the HubSpot membership merge.
-      shirtType: "STANDARD",
-      shirtReasons: [],
+      checked_in: false,
 
-      checkedIn: false,
+      checked_in_at: null,
     });
   }
 

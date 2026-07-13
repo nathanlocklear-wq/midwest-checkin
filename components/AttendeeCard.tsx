@@ -1,78 +1,85 @@
 "use client";
 
-import { Attendee } from "@/types/attendee";
+import type { Attendee } from "@/lib/attendees";
 
-interface Props {
-  attendee: Attendee;
+type Props = {
+  attendee?: Attendee;
   onCheckIn: (id: string) => void;
-}
+};
 
 export default function AttendeeCard({
   attendee,
   onCheckIn,
 }: Props) {
+
+  if (!attendee) {
+    return null;
+  }
+
   return (
-    <div className="rounded-xl bg-white p-6 shadow transition hover:shadow-lg">
-      <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
+    <div className="rounded-xl bg-white p-6 shadow">
 
-        <div className="flex-1">
-
-          <h2 className="text-2xl font-bold">
-            {attendee.fullName}
-          </h2>
-
-          <p className="text-slate-600">
-            {attendee.company}
-          </p>
-
-          <p className="text-sm text-slate-400">
-            {attendee.email}
-          </p>
-
-          <div className="mt-5 flex flex-wrap gap-2">
-
-            <span className="rounded-full bg-blue-100 px-3 py-1 text-sm font-medium text-blue-700">
-              {attendee.ticketType}
-            </span>
-
-            <span className="rounded-full bg-purple-100 px-3 py-1 text-sm font-medium text-purple-700">
-              {attendee.shirtType}
-            </span>
-
-            <span className="rounded-full bg-slate-200 px-3 py-1 text-sm">
-              {attendee.shirtSize}
-            </span>
-
-            {(attendee.shirtReasons ?? []).map((reason) => (
-  <span
-    key={reason}
-    className="rounded-full bg-orange-100 px-3 py-1 text-sm text-orange-700"
-  >
-    {reason}
-  </span>
-))}
-
-          </div>
-        </div>
+      <div className="flex items-center justify-between">
 
         <div>
 
-          {attendee.checkedIn ? (
-            <div className="rounded-lg bg-green-100 px-6 py-4 text-center font-semibold text-green-700">
-              ✅ Checked In
-            </div>
-          ) : (
-            <button
-              onClick={() => onCheckIn(attendee.id)}
-              className="rounded-lg bg-blue-600 px-8 py-4 text-lg font-semibold text-white transition hover:bg-blue-700"
-            >
-              Check In
-            </button>
+          <h2 className="text-2xl font-bold">
+            {attendee.full_name}
+          </h2>
+
+          <p className="text-gray-600">
+            {attendee.email}
+          </p>
+
+          {attendee.company && (
+            <p className="text-gray-600">
+              {attendee.company}
+            </p>
+          )}
+
+          {attendee.ticket_type && (
+            <p className="mt-2 text-gray-600">
+              {attendee.ticket_type}
+            </p>
+          )}
+
+          {attendee.shirt_type && (
+            <p className="mt-2 text-gray-600">
+              Shirt: {attendee.shirt_type}
+            </p>
+          )}
+
+          {attendee.checked_in && (
+            <span className="mt-3 inline-block rounded-full bg-green-100 px-3 py-1 text-sm">
+              Checked In
+            </span>
           )}
 
         </div>
 
+
+        {!attendee.checked_in && (
+          <button
+            onClick={() => onCheckIn(attendee.id)}
+            className="rounded-lg bg-blue-700 px-6 py-3 font-bold text-white"
+          >
+            Check In
+          </button>
+        )}
+
       </div>
+
+
+      {attendee.checked_in_at && (
+        <p className="mt-4 text-sm text-gray-500">
+          Checked in:
+          {" "}
+          {new Date(
+            attendee.checked_in_at
+          ).toLocaleString()}
+        </p>
+      )}
+
     </div>
   );
 }

@@ -68,6 +68,8 @@ export default function CheckInWorkflow() {
 
   switch (state) {
     case "FOUND":
+      if (!attendee) return null;
+
       return (
         <AttendeeView
           attendee={attendee}
@@ -77,6 +79,8 @@ export default function CheckInWorkflow() {
       );
 
     case "SUCCESS":
+      if (!attendee) return null;
+
       return (
         <SuccessView
           attendee={attendee}
@@ -94,7 +98,9 @@ export default function CheckInWorkflow() {
     case "ALREADY":
       return (
         <div className="space-y-6">
+
           <div className="rounded-2xl bg-yellow-400 p-10 text-center shadow">
+
             <div className="text-7xl">
               ⚠️
             </div>
@@ -113,6 +119,7 @@ export default function CheckInWorkflow() {
                   attendee.checked_in_at
                 ).toLocaleTimeString()}
             </div>
+
           </div>
 
           <button
@@ -121,12 +128,14 @@ export default function CheckInWorkflow() {
           >
             📷 Scan Another Badge
           </button>
+
         </div>
       );
 
     default:
       return (
         <div>
+
           <QRScanner
             active={true}
             onScan={handleScan}
@@ -135,6 +144,7 @@ export default function CheckInWorkflow() {
           <p className="mt-6 text-center text-xl text-white">
             Point the camera at a badge.
           </p>
+
         </div>
       );
   }

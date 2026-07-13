@@ -1,4 +1,4 @@
-import { Attendee } from "@/types/attendee";
+import type { Attendee } from "@/lib/attendees";
 
 const STORAGE_KEY = "midwest-checkin-attendees";
 
@@ -20,7 +20,10 @@ export function loadAttendees(): Attendee[] {
 export function saveAttendees(attendees: Attendee[]) {
   if (typeof window === "undefined") return;
 
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(attendees));
+  localStorage.setItem(
+    STORAGE_KEY,
+    JSON.stringify(attendees)
+  );
 }
 
 export function replaceAttendees(attendees: Attendee[]) {
@@ -34,7 +37,9 @@ export function clearAttendees() {
 }
 
 export function getAttendee(id: string) {
-  return loadAttendees().find((a) => a.id === id);
+  return loadAttendees().find(
+    (attendee) => attendee.id === id
+  );
 }
 
 export function findAttendeeByEmail(email: string) {
@@ -45,18 +50,24 @@ export function findAttendeeByEmail(email: string) {
   );
 }
 
-export function checkInAttendee(id: string): Attendee[] {
+export function checkInAttendee(
+  id: string
+): Attendee[] {
   const attendees = loadAttendees();
 
   const updated = attendees.map((attendee) => {
-    if (attendee.id !== id) return attendee;
+    if (attendee.id !== id) {
+      return attendee;
+    }
 
-    if (attendee.checkedIn) return attendee;
+    if (attendee.checked_in) {
+      return attendee;
+    }
 
     return {
       ...attendee,
-      checkedIn: true,
-      checkedInAt: new Date().toISOString(),
+      checked_in: true,
+      checked_in_at: new Date().toISOString(),
     };
   });
 
@@ -80,15 +91,15 @@ export function checkInAttendeeByEmail(
       return attendee;
     }
 
-    if (attendee.checkedIn) {
+    if (attendee.checked_in) {
       checkedInAttendee = attendee;
       return attendee;
     }
 
     checkedInAttendee = {
       ...attendee,
-      checkedIn: true,
-      checkedInAt: new Date().toISOString(),
+      checked_in: true,
+      checked_in_at: new Date().toISOString(),
     };
 
     return checkedInAttendee;
@@ -99,16 +110,20 @@ export function checkInAttendeeByEmail(
   return checkedInAttendee;
 }
 
-export function undoCheckIn(id: string): Attendee[] {
+export function undoCheckIn(
+  id: string
+): Attendee[] {
   const attendees = loadAttendees();
 
   const updated = attendees.map((attendee) => {
-    if (attendee.id !== id) return attendee;
+    if (attendee.id !== id) {
+      return attendee;
+    }
 
     return {
       ...attendee,
-      checkedIn: false,
-      checkedInAt: undefined,
+      checked_in: false,
+      checked_in_at: null,
     };
   });
 

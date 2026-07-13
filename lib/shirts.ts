@@ -1,4 +1,8 @@
-import { ShirtType } from "@/types/attendee";
+export type ShirtType =
+  | "SPECIAL"
+  | "STANDARD"
+  | "LATE"
+  | "NONE";
 
 export interface ShirtResult {
   shirtType: ShirtType;
@@ -18,7 +22,8 @@ export function determineShirt({
 }: ShirtInputs): ShirtResult {
   const payment = paymentMethod.toLowerCase();
   const ticket = ticketType.toLowerCase();
-  const isPresenting = presenting.trim().toLowerCase() === "yes";
+  const isPresenting =
+    presenting.trim().toLowerCase() === "yes";
 
   // 1. District+
   if (payment.includes("district+")) {
@@ -52,7 +57,7 @@ export function determineShirt({
     };
   }
 
-  // 5. Are you presenting?
+  // 5. Presenting
   if (isPresenting) {
     return {
       shirtType: "SPECIAL",

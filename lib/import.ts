@@ -1,5 +1,5 @@
-import { Attendee } from "@/types/attendee";
-import { Membership } from "@/types/membership";
+import type { Attendee } from "@/lib/attendees";
+import type { Membership } from "@/types/membership";
 import { determineShirt } from "./shirts";
 
 export function applyMemberships(
@@ -11,19 +11,19 @@ export function applyMemberships(
       attendee.email.trim().toLowerCase()
     );
 
-    const paymentMethod = membership?.paymentMethod ?? "";
+    const paymentMethod =
+      membership?.paymentMethod ?? "";
 
     const shirt = determineShirt({
       paymentMethod,
-      ticketType: attendee.ticketType,
-      presenting: attendee.presenting ? "Yes" : "No",
+      ticketType: attendee.ticket_type ?? "",
+      presenting: "No",
     });
 
     return {
       ...attendee,
 
-      shirtType: shirt.shirtType,
-      shirtReasons: shirt.shirtReasons,
+      shirt_type: shirt.shirtType,
     };
   });
 }

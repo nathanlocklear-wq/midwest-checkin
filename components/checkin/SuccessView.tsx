@@ -1,6 +1,6 @@
 "use client";
 
-import { Attendee } from "@/types/attendee";
+import type { Attendee } from "@/lib/attendees";
 
 interface Props {
   attendee: Attendee;
@@ -25,12 +25,14 @@ export default function SuccessView({
         </h1>
 
         <div className="mt-8 text-4xl font-bold">
-          {attendee.fullName}
+          {attendee.full_name}
         </div>
 
-        <div className="mt-3 text-2xl">
-          {attendee.company}
-        </div>
+        {attendee.company && (
+          <div className="mt-3 text-2xl">
+            {attendee.company}
+          </div>
+        )}
 
       </div>
 
