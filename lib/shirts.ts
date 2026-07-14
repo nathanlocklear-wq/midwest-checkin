@@ -28,16 +28,16 @@ export function determineShirt({
   // 1. District+
   if (payment.includes("district+")) {
     return {
-      shirtType: "SPECIAL",
-      shirtReasons: ["District+"],
+      shirtType: "STANDARD",
+      shirtReasons: ["District+ receives LEGO"],
     };
   }
 
   // 2. Attendee+
   if (payment.includes("attendee+")) {
     return {
-      shirtType: "SPECIAL",
-      shirtReasons: ["Attendee+"],
+      shirtType: "STANDARD",
+      shirtReasons: ["Attendee+ receives LEGO"],
     };
   }
 

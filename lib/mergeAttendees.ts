@@ -42,11 +42,11 @@ export function mergeAttendees(
     const reasons: string[] = [];
 
     if (paymentLower.includes("district+")) {
-      reasons.push("District+ Membership");
+      reasons.push("LEGO Gift");
     }
 
     if (paymentLower.includes("attendee+")) {
-      reasons.push("Attendee+ Membership");
+      reasons.push("LEGO Gift");
     }
 
     if (ticketLower.includes("committee")) {
@@ -66,9 +66,13 @@ export function mergeAttendees(
 
     let shirtType: Attendee["shirt_type"] = "STANDARD";
 
-    if (reasons.length > 0) {
-      shirtType = "SPECIAL";
-    } else if (ticketLower.includes("sponsor")) {
+    if (
+  reasons.includes("Committee") ||
+  reasons.includes("Presenter Ticket") ||
+  reasons.includes("Marked as Presenter")
+) {
+  shirtType = "SPECIAL";
+} else if (ticketLower.includes("sponsor")) {
       shirtType = "NONE";
     } else if (ticketLower.includes("late")) {
       shirtType = "LATE";
