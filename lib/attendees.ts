@@ -2,35 +2,61 @@ import { supabase } from "./supabase";
 
 export type Attendee = {
   id: string;
+
   first_name: string;
   last_name: string;
   full_name: string;
+
   email: string;
-  company: string | null;
-  ticket_type?: string | null;
-  shirt_type?: string | null;
+  company: string;
+
+  ticket_type: string;
+
+  presenting: boolean;
+
+  shirt_size: string;
+
+  shirt_type: string;
+
+  shirt_reasons: string[];
+
   checked_in: boolean;
   checked_in_at: string | null;
 };
 
-
 export async function getAttendees() {
-  const result = await supabase
+  const { data, error } = await supabase
     .from("attendees")
-    .select("*");
+    .select("*")
+    .order("last_name");
 
-  if (result.error) {
-    console.log(
-      "FULL SUPABASE ERROR:",
-      JSON.stringify(result.error, null, 2)
-    );
+  if (error) throw error;
 
-    throw new Error(result.error.message);
-  }
-
-  return (result.data ?? []) as Attendee[];
+  return (data ?? []) as Attendee[];
 }
 
+export async function searchAttendees(search: string) {
+  const value = search.trim();
+
+  if (!value) return [];
+
+  const { data, error } = await supabase
+    .from("attendees")
+    .select("*")
+    .or(
+      [
+        `full_name.ilike.%${value}%`,
+        `email.ilike.%${value}%`,
+        `company.ilike.%${value}%`,
+      ].join(",")
+    )
+    .order("last_name")
+    .limit(25);
+
+  if (error) throw error;
+
+  return (data ?? []) as Attendee[];
+}
 
 export async function findAttendee(email: string) {
   const { data, error } = await supabase
@@ -39,14 +65,10 @@ export async function findAttendee(email: string) {
     .eq("email", email)
     .single();
 
-  if (error) {
-    console.error("Find attendee error:", error);
-    return null;
-  }
+  if (error) return null;
 
   return data as Attendee;
 }
-
 
 export async function checkInAttendee(id: string) {
   const { data, error } = await supabase
@@ -59,10 +81,7 @@ export async function checkInAttendee(id: string) {
     .select()
     .single();
 
-  if (error) {
-    console.error("Check-in failed:", error);
-    throw error;
-  }
+  if (error) throw error;
 
   return data as Attendee;
 }

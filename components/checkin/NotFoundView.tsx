@@ -1,8 +1,8 @@
 "use client";
 
-interface Props {
+type Props = {
   onScanAgain: () => void;
-}
+};
 
 export default function NotFoundView({
   onScanAgain,
@@ -10,31 +10,31 @@ export default function NotFoundView({
   return (
     <div className="space-y-6">
 
-      <div className="rounded-2xl bg-red-600 p-10 text-center text-white shadow-xl">
+      <div className="rounded-3xl bg-red-600 p-10 text-center text-white shadow-2xl">
 
-        <div className="text-7xl">
+        <div className="text-8xl">
           ❌
         </div>
 
         <h1 className="mt-6 text-5xl font-black">
-          ATTENDEE NOT FOUND
+          Attendee Not Found
         </h1>
 
-        <p className="mt-8 text-2xl">
-          This badge is not in the attendee list.
+        <p className="mt-6 text-2xl">
+          We couldn't find a matching registration.
         </p>
 
         <p className="mt-3 text-lg opacity-90">
-          They may not be registered or the wrong badge was scanned.
+          Verify the badge or search by name.
         </p>
 
       </div>
 
       <button
         onClick={onScanAgain}
-        className="w-full rounded-xl bg-blue-700 py-6 text-2xl font-bold text-white hover:bg-blue-800"
+        className="w-full rounded-2xl bg-blue-700 py-6 text-2xl font-black text-white hover:bg-blue-800"
       >
-        📷 Scan Another Badge
+        Try Again
       </button>
 
     </div>

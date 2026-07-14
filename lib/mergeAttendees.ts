@@ -6,7 +6,6 @@ export function mergeAttendees(
 ): Attendee[] {
   const memberLookup = new Map<string, any>();
 
-  // Create HubSpot lookup by email
   hubspot.forEach((member) => {
     const email = String(member.Email || "")
       .trim()
@@ -17,129 +16,96 @@ export function mergeAttendees(
     }
   });
 
-  return eventbrite.map((person, index) => {
+  return eventbrite.map((person) => {
     const email = String(person.Email || "")
       .trim()
       .toLowerCase();
 
     const member = memberLookup.get(email);
 
-    const reasons: string[] = [];
+    const ticketType = String(
+      person["Ticket Type"] || ""
+    ).trim();
 
     const paymentMethod = String(
       member?.["Payment Method"] || ""
-    );
-
-    const ticketType = String(
-      person["Ticket Type"] || ""
-    );
+    ).trim();
 
     const presenting =
       String(person["Are you presenting?"] || "")
         .trim()
         .toLowerCase() === "yes";
 
+    const reasons: string[] = [];
 
-    if (
-      paymentMethod
-        .toLowerCase()
-        .includes("district+")
-    ) {
+    if (paymentMethod.toLowerCase().includes("district+")) {
       reasons.push("District+");
     }
 
-
-    if (
-      paymentMethod
-        .toLowerCase()
-        .includes("attendee+")
-    ) {
+    if (paymentMethod.toLowerCase().includes("attendee+")) {
       reasons.push("Attendee+");
     }
 
-
-    if (
-      ticketType
-        .toLowerCase()
-        .includes("presenter")
-    ) {
-      reasons.push("Presenter");
-    }
-
-
-    if (
-      ticketType
-        .toLowerCase()
-        .includes("committee")
-    ) {
+    if (ticketType.toLowerCase().includes("committee")) {
       reasons.push("Committee");
     }
 
+    if (ticketType.toLowerCase().includes("presenter")) {
+      reasons.push("Presenter Ticket");
+    }
 
-    if (
-      presenting &&
-      !reasons.includes("Presenter")
-    ) {
+    if (presenting && !reasons.includes("Presenter Ticket")) {
       reasons.push("Presenting");
     }
 
-
-    let shirtType:
-      | "SPECIAL"
-      | "STANDARD"
-      | "LATE"
-      | "NONE";
-
+    let shirtType = "STANDARD";
 
     if (reasons.length > 0) {
       shirtType = "SPECIAL";
-    } else if (
-      ticketType
-        .toLowerCase()
-        .includes("sponsor")
-    ) {
+    } else if (ticketType.toLowerCase().includes("sponsor")) {
       shirtType = "NONE";
-    } else if (
-      ticketType
-        .toLowerCase()
-        .includes("late")
-    ) {
+    } else if (ticketType.toLowerCase().includes("late")) {
       shirtType = "LATE";
-    } else {
-      shirtType = "STANDARD";
     }
 
+    const shirtSize =
+      String(
+        person["T-Shirt Size"] ??
+        person["Shirt Size"] ??
+        member?.["Shirt Size"] ??
+        ""
+      ).trim();
 
     return {
       id: crypto.randomUUID(),
 
-      first_name:
-        person["First Name"] || "",
+      first_name: String(person["First Name"] ?? "").trim(),
 
-      last_name:
-        person["Last Name"] || "",
+      last_name: String(person["Last Name"] ?? "").trim(),
 
-      full_name:
-        `${person["First Name"] || ""} ${
-          person["Last Name"] || ""
-        }`.trim(),
+      full_name: `${person["First Name"] ?? ""} ${person["Last Name"] ?? ""}`.trim(),
 
       email,
 
-      company:
-        person.Company || null,
+      // NEVER NULL
+      company: String(person.Company ?? "").trim(),
 
-      ticket_type:
-        ticketType,
+      // NEVER NULL
+      ticket_type: ticketType,
 
-      shirt_type:
-        shirtType,
+      presenting,
 
-      checked_in:
-        false,
+      // NEVER NULL
+      shirt_size: shirtSize,
 
-      checked_in_at:
-        null,
+      shirt_type: shirtType,
+
+      // PostgreSQL text[]
+      shirt_reasons: reasons,
+
+      checked_in: false,
+
+      checked_in_at: null,
     };
   });
 }

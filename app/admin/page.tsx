@@ -48,36 +48,25 @@ export default function AdminPage() {
 
       const attendees = mergeAttendees(eventbrite, hubspot);
 
-      // Remove all existing attendees
       const { error: deleteError } = await supabase
         .from("attendees")
         .delete()
         .neq("id", "");
 
-      if (deleteError) {
-        throw deleteError;
-      }
+      if (deleteError) throw deleteError;
 
-      // Upload the new attendee list
       const { error: insertError } = await supabase
         .from("attendees")
         .insert(attendees);
 
-      if (insertError) {
-        throw insertError;
-      }
+      if (insertError) throw insertError;
 
-      alert(`Successfully imported ${attendees.length} attendees.`);
+      alert(`Imported ${attendees.length} attendees!`);
 
       router.push("/checkin");
-    } catch (err) {
-      console.error("Import failed:", err);
-
-      if (err instanceof Error) {
-        alert(`Import failed:\n\n${err.message}`);
-      } else {
-        alert("Failed to import attendees.");
-      }
+    } catch (err: any) {
+      console.error(err);
+      alert(err.message ?? "Import failed.");
     } finally {
       setLoading(false);
     }
@@ -85,84 +74,206 @@ export default function AdminPage() {
 
   return (
     <main className="min-h-screen bg-slate-100">
-      <div className="mx-auto max-w-3xl px-6 py-12">
-        <h1 className="text-center text-5xl font-bold text-blue-900">
-          MidwestTechTalk Admin
-        </h1>
 
-        <p className="mt-3 text-center text-gray-600">
-          Upload the latest Eventbrite and HubSpot exports.
-        </p>
+      <div className="border-b bg-slate-900 shadow-lg">
+        <div className="mx-auto flex max-w-6xl items-center justify-between px-8 py-6">
 
-        <div className="mt-10 rounded-xl bg-white p-8 shadow-lg">
-          <div className="mb-8">
-            <label className="mb-2 block font-semibold">
-              Eventbrite Registration Export
-            </label>
+          <div>
+            <h1 className="text-4xl font-black text-white">
+              MidwestTechTalk
+            </h1>
 
-            <input
-              type="file"
-              accept=".csv"
-              onChange={(e) =>
-                setEventbriteFile(e.target.files?.[0] ?? null)
-              }
-              className="block w-full rounded-lg border p-3"
-            />
-
-            {eventbriteFile && (
-              <p className="mt-2 text-sm text-green-700">
-                ✓ {eventbriteFile.name}
-              </p>
-            )}
-          </div>
-
-          <div className="mb-8">
-            <label className="mb-2 block font-semibold">
-              HubSpot Membership Export
-            </label>
-
-            <input
-              type="file"
-              accept=".csv"
-              onChange={(e) =>
-                setHubspotFile(e.target.files?.[0] ?? null)
-              }
-              className="block w-full rounded-lg border p-3"
-            />
-
-            {hubspotFile && (
-              <p className="mt-2 text-sm text-green-700">
-                ✓ {hubspotFile.name}
-              </p>
-            )}
+            <p className="text-slate-300">
+              Conference Management
+            </p>
           </div>
 
           <button
-            onClick={buildAttendees}
-            disabled={loading}
-            className="w-full rounded-xl bg-blue-700 py-4 text-xl font-bold text-white hover:bg-blue-800 disabled:bg-gray-400"
+            onClick={() => router.push("/checkin")}
+            className="rounded-xl bg-blue-600 px-6 py-3 font-bold text-white hover:bg-blue-700"
           >
-            {loading ? "Uploading Attendees..." : "Build Attendee List"}
+            Open Check-In →
           </button>
-        </div>
 
-        <div className="mt-8 rounded-xl border border-blue-200 bg-blue-50 p-6">
-          <h2 className="mb-3 text-lg font-bold">
-            Shirt Logic
-          </h2>
-
-          <ul className="ml-6 list-disc space-y-1 text-sm">
-            <li>District+ → SPECIAL</li>
-            <li>Attendee+ → SPECIAL</li>
-            <li>Committee → SPECIAL</li>
-            <li>Presenter Ticket → SPECIAL</li>
-            <li>"Are you presenting?" = Yes → SPECIAL</li>
-            <li>Sponsor → NONE (unless Special)</li>
-            <li>LATE In-Person → LATE (unless Special)</li>
-            <li>In-Person → STANDARD</li>
-          </ul>
         </div>
       </div>
+
+      <div className="mx-auto mt-10 max-w-6xl px-6">
+
+        <div className="mb-10 grid gap-6 md:grid-cols-3">
+
+          <div className="rounded-3xl bg-white p-8 shadow-lg">
+            <div className="text-sm font-bold uppercase tracking-wide text-slate-500">
+              Event
+            </div>
+
+            <div className="mt-3 text-3xl font-black text-slate-900">
+              MidwestTechTalk
+            </div>
+
+            <div className="mt-2 text-slate-500">
+              Conference Check-In System
+            </div>
+          </div>
+
+          <div className="rounded-3xl bg-blue-600 p-8 text-white shadow-lg">
+            <div className="text-sm font-bold uppercase tracking-wide">
+              Status
+            </div>
+
+            <div className="mt-3 text-3xl font-black">
+              Ready
+            </div>
+
+            <div className="mt-2 opacity-90">
+              Waiting for attendee import
+            </div>
+          </div>
+
+          <div className="rounded-3xl bg-green-600 p-8 text-white shadow-lg">
+            <div className="text-sm font-bold uppercase tracking-wide">
+              Check-In
+            </div>
+
+            <div className="mt-3 text-3xl font-black">
+              Live
+            </div>
+
+            <div className="mt-2 opacity-90">
+              Mobile QR Scanner Ready
+            </div>
+          </div>
+
+        </div>
+
+        <div className="grid gap-8 lg:grid-cols-3">
+
+          <div className="lg:col-span-2 rounded-3xl bg-white p-8 shadow-xl">
+
+            <h2 className="text-3xl font-black text-slate-900">
+              Import Attendees
+            </h2>
+
+            <p className="mt-2 text-slate-500">
+              Upload the latest Eventbrite and HubSpot exports.
+            </p>
+
+            <div className="mt-8">
+
+              <label className="mb-3 block text-lg font-bold text-slate-800">
+                Eventbrite Export
+              </label>
+
+              <input
+                type="file"
+                accept=".csv"
+                onChange={(e) =>
+                  setEventbriteFile(e.target.files?.[0] ?? null)
+                }
+                className="w-full rounded-xl border-2 border-dashed border-slate-300 bg-slate-50 p-5 text-slate-700"
+              />
+
+              {eventbriteFile && (
+                <div className="mt-3 rounded-xl bg-green-100 p-3 font-semibold text-green-700">
+                  ✓ {eventbriteFile.name}
+                </div>
+              )}
+
+            </div>
+
+            <div className="mt-8">
+
+              <label className="mb-3 block text-lg font-bold text-slate-800">
+                HubSpot Membership Export
+              </label>
+
+              <input
+                type="file"
+                accept=".csv"
+                onChange={(e) =>
+                  setHubspotFile(e.target.files?.[0] ?? null)
+                }
+                className="w-full rounded-xl border-2 border-dashed border-slate-300 bg-slate-50 p-5 text-slate-700"
+              />
+
+              {hubspotFile && (
+                <div className="mt-3 rounded-xl bg-green-100 p-3 font-semibold text-green-700">
+                  ✓ {hubspotFile.name}
+                </div>
+              )}
+
+            </div>
+
+            <button
+              onClick={buildAttendees}
+              disabled={loading}
+              className="mt-10 w-full rounded-2xl bg-blue-700 py-5 text-2xl font-black text-white transition hover:bg-blue-800 disabled:bg-gray-400"
+            >
+              {loading ? "Importing..." : "📥 Import Attendees"}
+            </button>
+
+          </div>
+
+          <div className="rounded-3xl bg-white p-8 shadow-xl">
+
+            <h2 className="text-2xl font-black text-slate-900">
+              Shirt Assignment Rules
+            </h2>
+
+            <div className="mt-6 space-y-4">
+
+              <div className="rounded-xl bg-blue-50 p-4">
+                <div className="font-bold text-blue-800">
+                  SPECIAL
+                </div>
+
+                <ul className="mt-2 space-y-1 text-sm text-slate-700">
+                  <li>• District+</li>
+                  <li>• Attendee+</li>
+                  <li>• Committee</li>
+                  <li>• Presenter Ticket</li>
+                  <li>• Presenting = Yes</li>
+                </ul>
+              </div>
+
+              <div className="rounded-xl bg-yellow-50 p-4">
+                <div className="font-bold text-yellow-800">
+                  LATE
+                </div>
+
+                <p className="mt-2 text-sm text-slate-700">
+                  Late In-Person Registration
+                </p>
+              </div>
+
+              <div className="rounded-xl bg-gray-100 p-4">
+                <div className="font-bold text-slate-800">
+                  NONE
+                </div>
+
+                <p className="mt-2 text-sm text-slate-700">
+                  Sponsors (unless Special)
+                </p>
+              </div>
+
+              <div className="rounded-xl bg-green-100 p-4">
+                <div className="font-bold text-green-800">
+                  STANDARD
+                </div>
+
+                <p className="mt-2 text-sm text-slate-700">
+                  Everyone else
+                </p>
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
     </main>
   );
 }
