@@ -85,3 +85,19 @@ export async function checkInAttendee(id: string) {
 
   return data as Attendee;
 }
+
+export async function undoCheckInAttendee(id: string) {
+  const { data, error } = await supabase
+    .from("attendees")
+    .update({
+      checked_in: false,
+      checked_in_at: null,
+    })
+    .eq("id", id)
+    .select()
+    .single();
+
+  if (error) throw error;
+
+  return data as Attendee;
+}
