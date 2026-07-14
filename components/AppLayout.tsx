@@ -17,51 +17,122 @@ export default function AppLayout({
     <main className="min-h-screen bg-gradient-to-b from-[#02112f] via-[#08204d] to-[#02112f]">
 
       <header className="border-b border-white/10 bg-[#02112f]/90 backdrop-blur">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5">
 
-          <div className="flex items-center gap-4">
+        <div className="
+          mx-auto 
+          flex 
+          max-w-7xl 
+          flex-col 
+          gap-5 
+          px-4 
+          py-5
+          md:flex-row 
+          md:items-center 
+          md:justify-between
+          md:px-6
+        ">
+
+          <div className="flex items-center gap-3">
 
             <Image
               src="/logo.png"
               alt="Midwest Tech Talk"
-              width={72}
-              height={72}
+              width={64}
+              height={64}
               priority
+              className="shrink-0"
             />
 
             <div>
-              <h1 className="text-3xl font-black text-white">
+
+              <h1 className="
+                text-2xl 
+                font-black 
+                text-white
+                md:text-3xl
+              ">
                 {title}
               </h1>
 
               {subtitle && (
-                <p className="text-slate-300">
+                <p className="
+                  text-sm
+                  text-slate-300
+                  md:text-base
+                ">
                   {subtitle}
                 </p>
               )}
+
             </div>
 
           </div>
 
-          <nav className="flex gap-3">
+
+          <nav className="
+            flex 
+            flex-wrap 
+            justify-center 
+            gap-2
+            md:justify-end
+            md:gap-3
+          ">
 
             <Link
               href="/checkin"
-              className="rounded-xl px-5 py-3 font-bold text-white transition hover:bg-[#e02427]"
+              className="
+                rounded-xl 
+                px-4 
+                py-2 
+                text-sm
+                font-bold 
+                text-white 
+                transition 
+                hover:bg-[#e02427]
+                md:px-5
+                md:py-3
+                md:text-base
+              "
             >
               Check-In
             </Link>
 
+
             <Link
               href="/admin"
-              className="rounded-xl px-5 py-3 font-bold text-white transition hover:bg-[#e02427]"
+              className="
+                rounded-xl 
+                px-4 
+                py-2 
+                text-sm
+                font-bold 
+                text-white 
+                transition 
+                hover:bg-[#e02427]
+                md:px-5
+                md:py-3
+                md:text-base
+              "
             >
               Admin
             </Link>
 
+
             <Link
               href="/admin/attendees"
-              className="rounded-xl px-5 py-3 font-bold text-white transition hover:bg-[#e02427]"
+              className="
+                rounded-xl 
+                px-4 
+                py-2 
+                text-sm
+                font-bold 
+                text-white 
+                transition 
+                hover:bg-[#e02427]
+                md:px-5
+                md:py-3
+                md:text-base
+              "
             >
               Attendees
             </Link>
@@ -69,9 +140,18 @@ export default function AppLayout({
           </nav>
 
         </div>
+
       </header>
 
-      <div className="mx-auto max-w-7xl px-6 py-10">
+
+      <div className="
+        mx-auto 
+        max-w-7xl 
+        px-4 
+        py-8
+        md:px-6
+        md:py-10
+      ">
         {children}
       </div>
 
