@@ -18,44 +18,57 @@ export default function StatsCards({
   const remaining = total - checkedIn;
 
   return (
-    <div className="mb-6 grid gap-4 md:grid-cols-4 xl:grid-cols-7">
-      <Card title="Total" value={total} color="text-slate-900" />
+    <div className="mb-8 grid gap-5 md:grid-cols-2 xl:grid-cols-7">
 
       <Card
-        title="Checked In"
+        title="👥 Total"
+        value={total}
+        bg="bg-white"
+        valueColor="text-[#02112f]"
+      />
+
+      <Card
+        title="✅ Checked In"
         value={checkedIn}
-        color="text-green-700"
+        bg="bg-green-50"
+        valueColor="text-green-700"
       />
 
       <Card
-        title="Remaining"
+        title="⏳ Remaining"
         value={remaining}
-        color="text-amber-600"
+        bg="bg-amber-50"
+        valueColor="text-amber-700"
       />
 
       <Card
-        title="🟣 Special"
+        title="⭐ Special"
         value={special}
-        color="text-purple-700"
+        bg="bg-red-50"
+        valueColor="text-[#e02427]"
       />
 
       <Card
-        title="🟢 Standard"
+        title="👕 Standard"
         value={standard}
-        color="text-green-700"
+        bg="bg-blue-50"
+        valueColor="text-[#02112f]"
       />
 
       <Card
-        title="🟠 Late"
+        title="🕒 Late"
         value={late}
-        color="text-orange-600"
+        bg="bg-yellow-50"
+        valueColor="text-yellow-700"
       />
 
       <Card
-        title="⚫ No Shirt"
+        title="🚫 No Shirt"
         value={none}
-        color="text-gray-700"
+        bg="bg-slate-100"
+        valueColor="text-slate-700"
       />
+
     </div>
   );
 }
@@ -63,21 +76,25 @@ export default function StatsCards({
 interface CardProps {
   title: string;
   value: number;
-  color: string;
+  bg: string;
+  valueColor: string;
 }
 
 function Card({
   title,
   value,
-  color,
+  bg,
+  valueColor,
 }: CardProps) {
   return (
-    <div className="rounded-xl bg-white p-5 shadow">
-      <div className="text-sm text-slate-500">
+    <div
+      className={`${bg} rounded-3xl border border-slate-200 p-6 shadow-lg transition-all duration-200 hover:-translate-y-1 hover:shadow-xl`}
+    >
+      <div className="text-sm font-bold uppercase tracking-wider text-slate-500">
         {title}
       </div>
 
-      <div className={`mt-2 text-3xl font-bold ${color}`}>
+      <div className={`mt-3 text-5xl font-black ${valueColor}`}>
         {value}
       </div>
     </div>

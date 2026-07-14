@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import QRScanner from "@/components/QRScanner";
 import AttendeeView from "@/components/checkin/AttendeeView";
@@ -12,6 +12,7 @@ import {
   searchAttendees,
   findAttendee,
   checkInAttendee,
+  undoCheckInAttendee,
   getAttendees,
 } from "@/lib/attendees";
 
@@ -30,16 +31,14 @@ export default function CheckInWorkflow() {
   const [state, setState] = useState<State>("SEARCH");
 
   const [query, setQuery] = useState("");
-
   const [results, setResults] = useState<Attendee[]>([]);
-
   const [scannerOpen, setScannerOpen] = useState(false);
-
-  const [attendee, setAttendee] =
-    useState<Attendee | null>(null);
+  const [attendee, setAttendee] = useState<Attendee | null>(null);
 
   const [total, setTotal] = useState(0);
   const [checkedIn, setCheckedIn] = useState(0);
+
+  const searchRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     async function loadStats() {
@@ -51,8 +50,8 @@ export default function CheckInWorkflow() {
         setCheckedIn(
           attendees.filter((a) => a.checked_in).length
         );
-      } catch (e) {
-        console.error(e);
+      } catch (err) {
+        console.error(err);
       }
     }
 
@@ -68,15 +67,22 @@ export default function CheckInWorkflow() {
 
       try {
         const found = await searchAttendees(query);
-
         setResults(found);
-      } catch (e) {
-        console.error(e);
+      } catch (err) {
+        console.error(err);
       }
     }
 
     doSearch();
   }, [query]);
+
+  useEffect(() => {
+    if (state === "SEARCH") {
+      setTimeout(() => {
+        searchRef.current?.focus();
+      }, 50);
+    }
+  }, [state]);
 
   const reset = () => {
     setQuery("");
@@ -120,10 +126,32 @@ export default function CheckInWorkflow() {
     const updated = await checkInAttendee(attendee.id);
 
     setAttendee(updated);
-
     setCheckedIn((c) => c + 1);
-
     setState("SUCCESS");
+  }
+
+  async function handleUndoCheckIn() {
+    if (!attendee) return;
+
+    const updated = await undoCheckInAttendee(attendee.id);
+
+    setAttendee(updated);
+    setCheckedIn((c) => Math.max(0, c - 1));
+    setState("SEARCH");
+    reset();
+  }
+
+  function handleSearchKeyDown(
+    e: React.KeyboardEvent<HTMLInputElement>
+  ) {
+    if (e.key === "Enter" && results.length === 1) {
+      selectAttendee(results[0]);
+    }
+
+    if (e.key === "Escape") {
+      setQuery("");
+      setResults([]);
+    }
   }
 
   switch (state) {
@@ -155,7 +183,7 @@ export default function CheckInWorkflow() {
       return (
         <div className="space-y-6">
 
-          <div className="rounded-3xl bg-yellow-400 p-10 text-center shadow-2xl">
+          <div className="rounded-3xl bg-yellow-300 p-10 text-center shadow-2xl">
 
             <div className="text-8xl">
               ⚠️
@@ -165,7 +193,7 @@ export default function CheckInWorkflow() {
               Already Checked In
             </h1>
 
-            <h2 className="mt-8 text-3xl font-bold text-black">
+            <h2 className="mt-8 text-4xl font-bold text-black">
               {attendee?.full_name}
             </h2>
 
@@ -175,9 +203,18 @@ export default function CheckInWorkflow() {
 
           </div>
 
+
+          <button
+            onClick={handleUndoCheckIn}
+            className="w-full rounded-2xl bg-[#e02427] py-6 text-2xl font-black text-white hover:bg-red-700"
+          >
+            ↩️ Undo Check-In
+          </button>
+
+
           <button
             onClick={reset}
-            className="w-full rounded-2xl bg-blue-700 py-6 text-2xl font-black text-white"
+            className="w-full rounded-2xl bg-[#02112f] py-6 text-2xl font-black text-white hover:bg-[#0b214f]"
           >
             Next Attendee
           </button>
@@ -191,62 +228,65 @@ export default function CheckInWorkflow() {
 
           <div className="rounded-3xl bg-white p-8 shadow-2xl">
 
-            <h1 className="text-center text-4xl font-black text-slate-900">
-              Check-In
-            </h1>
+            <div className="mb-8 text-center">
 
-            <p className="mt-2 text-center text-slate-500">
-              Search by name, email or school
-            </p>
+              <h1 className="text-5xl font-black text-[#02112f]">
+                Attendee Check-In
+              </h1>
+
+              <p className="mt-3 text-lg text-slate-500">
+                Search by attendee name, email, or organization
+              </p>
+
+            </div>
 
             <input
+              ref={searchRef}
+              autoFocus
               value={query}
-              onChange={(e) =>
-                setQuery(e.target.value)
-              }
+              onChange={(e) => setQuery(e.target.value)}
+              onKeyDown={handleSearchKeyDown}
               placeholder="Search attendees..."
-              className="mt-8 w-full rounded-xl border-2 border-slate-300 p-4 text-xl text-slate-900 outline-none focus:border-blue-600"
+              className="w-full rounded-2xl border-2 border-slate-300 p-5 text-2xl font-semibold text-slate-900 transition focus:border-[#e02427] focus:outline-none"
             />
 
             <button
-              onClick={() =>
-                setScannerOpen(!scannerOpen)
-              }
-              className="mt-5 w-full rounded-xl bg-blue-700 py-4 text-xl font-bold text-white"
+              onClick={() => setScannerOpen(!scannerOpen)}
+              className="mt-5 w-full rounded-2xl bg-[#02112f] py-5 text-xl font-bold text-white transition hover:bg-[#0b214f]"
             >
               {scannerOpen
-                ? "Close Camera"
-                : "📷 Scan Badge"}
+                ? "Close QR Scanner"
+                : "📷 Scan Badge QR Code"}
             </button>
 
-            <div className="mt-8 grid grid-cols-3 gap-4">
+            <div className="mt-8 grid grid-cols-3 gap-5">
 
-              <div className="rounded-xl bg-slate-100 p-4 text-center">
-                <div className="text-3xl font-black text-slate-900">
+              <div className="rounded-2xl bg-slate-100 p-5 text-center shadow">
+                <div className="text-4xl font-black text-[#02112f]">
                   {total}
                 </div>
 
-                <div className="text-sm font-semibold text-slate-500">
+                <div className="mt-2 text-sm font-bold uppercase text-slate-500">
                   Registered
                 </div>
               </div>
 
-              <div className="rounded-xl bg-green-100 p-4 text-center">
-                <div className="text-3xl font-black text-green-700">
+              <div className="rounded-2xl bg-green-100 p-5 text-center shadow">
+                <div className="text-4xl font-black text-green-700">
                   {checkedIn}
                 </div>
 
-                <div className="text-sm font-semibold text-green-700">
+                <div className="mt-2 text-sm font-bold uppercase text-green-700">
                   Checked In
                 </div>
               </div>
 
-              <div className="rounded-xl bg-blue-100 p-4 text-center">
-                <div className="text-3xl font-black text-blue-700">
+              <div className="rounded-2xl bg-red-100 p-5 text-center shadow">
+                <div className="text-4xl font-black text-[#e02427]">
                   {total - checkedIn}
                 </div>
 
-                <div className="text-sm font-semibold text-blue-700">
+                <div className="mt-2 text-sm font-bold uppercase text-[#e02427]">
                   Remaining
                 </div>
               </div>

@@ -16,7 +16,7 @@ export type Attendee = {
 
   shirt_size: string;
 
-  shirt_type: string;
+  shirt_type: "SPECIAL" | "STANDARD" | "LATE" | "NONE";
 
   shirt_reasons: string[];
 
@@ -28,7 +28,7 @@ export async function getAttendees() {
   const { data, error } = await supabase
     .from("attendees")
     .select("*")
-    .order("last_name");
+    .order("last_name", { ascending: true });
 
   if (error) throw error;
 
@@ -50,7 +50,7 @@ export async function searchAttendees(search: string) {
         `company.ilike.%${value}%`,
       ].join(",")
     )
-    .order("last_name")
+    .order("last_name", { ascending: true })
     .limit(25);
 
   if (error) throw error;
@@ -62,10 +62,10 @@ export async function findAttendee(email: string) {
   const { data, error } = await supabase
     .from("attendees")
     .select("*")
-    .eq("email", email)
-    .single();
+    .eq("email", email.trim().toLowerCase())
+    .maybeSingle();
 
-  if (error) return null;
+  if (error || !data) return null;
 
   return data as Attendee;
 }
@@ -100,4 +100,8 @@ export async function undoCheckInAttendee(id: string) {
   if (error) throw error;
 
   return data as Attendee;
+}
+
+export async function refreshAttendees() {
+  return getAttendees();
 }

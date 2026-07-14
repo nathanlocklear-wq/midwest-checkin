@@ -19,28 +19,60 @@ export function parseVCard(text: string): VCardData | null {
     title: "",
   };
 
-  const lines = text.split(/\r?\n/);
+  const lines = text
+    .split(/\r?\n/)
+    .map((line) => line.trim());
 
   for (const line of lines) {
-    if (line.startsWith("N:")) {
-      const value = line.substring(2);
-      const [last, first] = value.split(";");
 
-      data.firstName = first ?? "";
-      data.lastName = last ?? "";
+    if (line.startsWith("N")) {
+      const value = line.split(":")[1] ?? "";
+
+      const parts = value.split(";");
+
+      data.lastName = parts[0] ?? "";
+      data.firstName = parts[1] ?? "";
     }
 
-    if (line.startsWith("EMAIL:")) {
-      data.email = line.substring(6).trim().toLowerCase();
+
+    if (line.startsWith("FN")) {
+      const value = line.split(":")[1] ?? "";
+
+      if (!data.firstName && !data.lastName) {
+        const names = value.split(" ");
+
+        data.firstName = names[0] ?? "";
+        data.lastName = names.slice(1).join(" ");
+      }
     }
 
-    if (line.startsWith("ORG:")) {
-      data.company = line.substring(4);
+
+    if (line.startsWith("EMAIL")) {
+      const value = line.split(":")[1] ?? "";
+
+      data.email = value
+        .trim()
+        .toLowerCase();
     }
 
-    if (line.startsWith("TITLE:")) {
-      data.title = line.substring(6);
+
+    if (line.startsWith("ORG")) {
+      const value = line.split(":")[1] ?? "";
+
+      data.company = value.replace(/;/g, " ").trim();
     }
+
+
+    if (line.startsWith("TITLE")) {
+      const value = line.split(":")[1] ?? "";
+
+      data.title = value.trim();
+    }
+
+  }
+
+  if (!data.email) {
+    return null;
   }
 
   return data;

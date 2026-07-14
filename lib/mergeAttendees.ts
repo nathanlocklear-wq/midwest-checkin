@@ -36,71 +36,81 @@ export function mergeAttendees(
         .trim()
         .toLowerCase() === "yes";
 
+    const ticketLower = ticketType.toLowerCase();
+    const paymentLower = paymentMethod.toLowerCase();
+
     const reasons: string[] = [];
 
-    if (paymentMethod.toLowerCase().includes("district+")) {
-      reasons.push("District+");
+    if (paymentLower.includes("district+")) {
+      reasons.push("District+ Membership");
     }
 
-    if (paymentMethod.toLowerCase().includes("attendee+")) {
-      reasons.push("Attendee+");
+    if (paymentLower.includes("attendee+")) {
+      reasons.push("Attendee+ Membership");
     }
 
-    if (ticketType.toLowerCase().includes("committee")) {
+    if (ticketLower.includes("committee")) {
       reasons.push("Committee");
     }
 
-    if (ticketType.toLowerCase().includes("presenter")) {
+    if (ticketLower.includes("presenter")) {
       reasons.push("Presenter Ticket");
     }
 
-    if (presenting && !reasons.includes("Presenter Ticket")) {
-      reasons.push("Presenting");
+    if (
+      presenting &&
+      !reasons.includes("Presenter Ticket")
+    ) {
+      reasons.push("Marked as Presenter");
     }
 
-    let shirtType = "STANDARD";
+    let shirtType: Attendee["shirt_type"] = "STANDARD";
 
     if (reasons.length > 0) {
       shirtType = "SPECIAL";
-    } else if (ticketType.toLowerCase().includes("sponsor")) {
+    } else if (ticketLower.includes("sponsor")) {
       shirtType = "NONE";
-    } else if (ticketType.toLowerCase().includes("late")) {
+    } else if (ticketLower.includes("late")) {
       shirtType = "LATE";
     }
 
-    const shirtSize =
-      String(
-        person["T-Shirt Size"] ??
+    const shirtSize = String(
+      person["T-Shirt Size"] ??
         person["Shirt Size"] ??
         member?.["Shirt Size"] ??
         ""
-      ).trim();
+    ).trim();
 
     return {
       id: crypto.randomUUID(),
 
-      first_name: String(person["First Name"] ?? "").trim(),
+      first_name: String(
+        person["First Name"] ?? ""
+      ).trim(),
 
-      last_name: String(person["Last Name"] ?? "").trim(),
+      last_name: String(
+        person["Last Name"] ?? ""
+      ).trim(),
 
-      full_name: `${person["First Name"] ?? ""} ${person["Last Name"] ?? ""}`.trim(),
+      full_name:
+        `${person["First Name"] ?? ""} ${
+          person["Last Name"] ?? ""
+        }`.trim(),
 
       email,
 
-      // NEVER NULL
-      company: String(person.Company ?? "").trim(),
+      company: String(
+        person.Company ?? ""
+      ).trim(),
 
-      // NEVER NULL
       ticket_type: ticketType,
 
       presenting,
 
-      // NEVER NULL
       shirt_size: shirtSize,
 
       shirt_type: shirtType,
 
-      // PostgreSQL text[]
       shirt_reasons: reasons,
 
       checked_in: false,
