@@ -41,42 +41,44 @@ export function mergeAttendees(
 
     const reasons: string[] = [];
 
-    if (paymentLower.includes("district+")) {
-      reasons.push("LEGO Gift");
-    }
+    const isDistrictPlus = paymentLower.includes("district+");
+    const isAttendeePlus = paymentLower.includes("attendee+");
 
-    if (paymentLower.includes("attendee+")) {
-      reasons.push("LEGO Gift");
-    }
+    const isCommittee = ticketLower.includes("committee");
 
-    if (ticketLower.includes("committee")) {
-      reasons.push("Committee");
-    }
+    const isPresenter =
+      ticketLower.includes("presenter") ||
+      presenting;
 
-    if (ticketLower.includes("presenter")) {
-      reasons.push("Presenter Ticket");
-    }
 
+    // LEGO Gift rules
     if (
-      presenting &&
-      !reasons.includes("Presenter Ticket")
+      isDistrictPlus ||
+      isAttendeePlus ||
+      isCommittee ||
+      isPresenter
     ) {
-      reasons.push("Marked as Presenter");
+      reasons.push("🧱 LEGO Gift");
     }
 
+
+    // Presenter Bag rules
+    if (isPresenter) {
+      reasons.push("🎤 Presenter Bag");
+    }
+
+
+    // Shirt rules
     let shirtType: Attendee["shirt_type"] = "STANDARD";
 
-    if (
-  reasons.includes("Committee") ||
-  reasons.includes("Presenter Ticket") ||
-  reasons.includes("Marked as Presenter")
-) {
-  shirtType = "SPECIAL";
-} else if (ticketLower.includes("sponsor")) {
+    if (isCommittee || isPresenter) {
+      shirtType = "SPECIAL";
+    } else if (ticketLower.includes("sponsor")) {
       shirtType = "NONE";
     } else if (ticketLower.includes("late")) {
       shirtType = "LATE";
     }
+
 
     const shirtSize = String(
       person["T-Shirt Size"] ??
@@ -84,6 +86,7 @@ export function mergeAttendees(
         member?.["Shirt Size"] ??
         ""
     ).trim();
+
 
     return {
       id: crypto.randomUUID(),

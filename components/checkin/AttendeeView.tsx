@@ -91,9 +91,9 @@ export default function AttendeeView({
 
           {attendee.shirt_reasons?.length > 0 && (
 
-            <div className="rounded-2xl bg-yellow-50 p-6">
+            <div className="rounded-2xl bg-amber-100 p-6">
 
-              <div className="text-sm font-black uppercase tracking-wide text-yellow-700">
+              <div className="text-sm font-black uppercase tracking-wide text-amber-800">
                 Bonus Item
               </div>
 
@@ -103,7 +103,7 @@ export default function AttendeeView({
 
                   <span
                     key={reason}
-                    className="rounded-full bg-white px-4 py-2 font-bold text-yellow-700"
+                    className="rounded-full bg-white px-4 py-2 font-bold text-amber-800"
                   >
                     {reason}
                   </span>
