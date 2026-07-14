@@ -24,7 +24,7 @@ export default function AdminLoginPage() {
       document.cookie =
   "mwtt_admin_auth=true; path=/";
 
-      router.push("/admin");
+      window.location.href = "/admin";
     } else {
       setError("Incorrect password");
     }
