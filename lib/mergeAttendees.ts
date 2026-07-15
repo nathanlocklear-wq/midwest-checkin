@@ -2,7 +2,8 @@ import type { Attendee } from "@/lib/attendees";
 
 export function mergeAttendees(
   eventbrite: any[],
-  hubspot: any[]
+  hubspot: any[],
+  badgeCutoffDate: string
 ): Attendee[] {
   const memberLookup = new Map<string, any>();
 
@@ -87,6 +88,16 @@ export function mergeAttendees(
         ""
     ).trim();
 
+const badgeCutoff = new Date(`${badgeCutoffDate}T23:59:59`);
+
+const registeredAt = new Date(
+  String(person["Order Date"] ?? "").trim()
+);
+
+const badgeStillNeeded =
+
+  !isNaN(registeredAt.getTime()) &&
+  registeredAt > badgeCutoff;
 
     return {
       id: crypto.randomUUID(),
@@ -117,6 +128,10 @@ export function mergeAttendees(
       shirt_size: shirtSize,
 
       shirt_type: shirtType,
+
+      badge_still_needed: badgeStillNeeded,
+
+      badge_printed_at: null,
 
       shirt_reasons: reasons,
 

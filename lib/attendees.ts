@@ -20,6 +20,10 @@ export type Attendee = {
 
   shirt_reasons: string[];
 
+  badge_still_needed: boolean;
+
+  badge_printed_at: string | null;
+
   checked_in: boolean;
   checked_in_at: string | null;
 };
@@ -104,4 +108,64 @@ export async function undoCheckInAttendee(id: string) {
 
 export async function refreshAttendees() {
   return getAttendees();
+}
+
+export async function getDuplicateAttendees() {
+  const attendees = await getAttendees();
+
+  const map = new Map<string, Attendee[]>();
+
+  attendees.forEach((attendee) => {
+    const email = attendee.email.trim().toLowerCase();
+
+    if (!email) return;
+
+    if (!map.has(email)) {
+      map.set(email, []);
+    }
+
+    map.get(email)!.push(attendee);
+  });
+
+  return [...map.values()].filter(
+    (group) => group.length > 1
+  );
+}
+
+export async function getBadgeStillNeededCount() {
+  const { count, error } = await supabase
+    .from("attendees")
+    .select("*", { count: "exact", head: true })
+    .eq("badge_still_needed", true);
+
+  if (error) throw error;
+
+  return count ?? 0;
+}
+
+export async function getCheckedInCount() {
+  const { count, error } = await supabase
+    .from("attendees")
+    .select("*", { count: "exact", head: true })
+    .eq("checked_in", true);
+
+  if (error) throw error;
+
+  return count ?? 0;
+}
+
+export async function markBadgePrinted(id: string) {
+  const { data, error } = await supabase
+    .from("attendees")
+    .update({
+      badge_still_needed: false,
+      badge_printed_at: new Date().toISOString(),
+    })
+    .eq("id", id)
+    .select()
+    .single();
+
+  if (error) throw error;
+
+  return data as Attendee;
 }

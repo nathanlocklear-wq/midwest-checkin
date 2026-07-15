@@ -45,7 +45,18 @@ export default function AttendeeView({
 
 
         <div className="mt-8 space-y-5">
+{attendee.badge_still_needed && (
+  <div className="rounded-2xl border-2 border-red-600 bg-red-100 p-6 text-center">
+    <div className="text-4xl font-black text-red-700">
+      ⚠️ Badge Still Needed
+    </div>
 
+    <div className="mt-2 text-xl font-semibold text-red-700">
+      This attendee registered after badge production.
+      Please direct them to the badge printing table.
+    </div>
+  </div>
+)}
           <div className="rounded-2xl bg-slate-100 p-6">
 
             <div className="text-sm font-black uppercase tracking-wide text-slate-500">
@@ -59,7 +70,7 @@ export default function AttendeeView({
           </div>
 
 
-          <div className="grid grid-cols-2 gap-5">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
 
             <div className={`rounded-2xl border p-6 ${shirtStyle}`}>
 

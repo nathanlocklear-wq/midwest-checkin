@@ -61,7 +61,7 @@ export default function SuccessView({
         </p>
 
 
-        <div className="mt-10 grid grid-cols-2 gap-5">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
 
           <div className={`rounded-2xl border p-6 ${shirtColor}`}>
 
