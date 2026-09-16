@@ -20,7 +20,6 @@ export default function AdminLogin({ onSuccess }: Props) {
     });
 
     if (response.ok) {
-      sessionStorage.setItem("admin_authenticated", "true");
       onSuccess();
     } else {
       setError("Incorrect password");

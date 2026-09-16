@@ -40,7 +40,7 @@ export async function getAttendees() {
 }
 
 export async function searchAttendees(search: string) {
-  const value = search.trim();
+  const value = search.trim().replace(/[%,().*\\]/g, " " ).trim().slice(0, 100);
 
   if (!value) return [];
 

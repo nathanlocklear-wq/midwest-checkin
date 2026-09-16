@@ -21,10 +21,9 @@ export default function AdminLoginPage() {
     });
 
     if (response.ok) {
-      document.cookie =
-  "mwtt_admin_auth=true; path=/";
 
-      window.location.href = "/admin";
+      router.replace("/admin");
+      router.refresh();
     } else {
       setError("Incorrect password");
     }

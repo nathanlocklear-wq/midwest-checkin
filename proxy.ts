@@ -1,23 +1,12 @@
-import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
-
+import { NextResponse, type NextRequest } from "next/server";
+import { SESSION_COOKIE, validSession } from "./lib/session";
 export function proxy(request: NextRequest) {
-  // Allow the login page through
-  if (request.nextUrl.pathname === "/admin/login") {
-    return NextResponse.next();
+  if (request.nextUrl.pathname === "/admin/login") return NextResponse.next();
+  if (!validSession(request.cookies.get(SESSION_COOKIE)?.value)) {
+    return NextResponse.redirect(new URL("/admin/login", request.url));
   }
-
-  const auth = request.cookies.get("mwtt_admin_auth");
-
-  if (!auth) {
-    return NextResponse.redirect(
-      new URL("/admin/login", request.url)
-    );
-  }
-
-  return NextResponse.next();
+  const response = NextResponse.next();
+  response.headers.set("Cache-Control", "private, no-store");
+  return response;
 }
-
-export const config = {
-  matcher: ["/admin/:path*"],
-};
+export const config = { matcher: ["/", "/checkin/:path*", "/admin/:path*"] };
