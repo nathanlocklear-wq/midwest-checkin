@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import AppLayout from "@/components/AppLayout";
-import { supabase } from "@/lib/supabase";
+import { staffRequest } from "@/lib/staff-api";
 
 export default function SettingsPage() {
   const router = useRouter();
@@ -16,11 +16,7 @@ export default function SettingsPage() {
   }, []);
 
   async function loadSettings() {
-    const { data, error } = await supabase
-      .from("settings")
-      .select("value")
-      .eq("key", "badge_cutoff_date")
-      .single();
+    const { data, error } = await staffRequest<{value:string}>("settingsRead");
 
     if (!error && data) {
       setBadgeCutoffDate(data.value);
@@ -31,12 +27,7 @@ export default function SettingsPage() {
     try {
       setLoading(true);
 
-      const { error } = await supabase
-        .from("settings")
-        .update({
-          value: badgeCutoffDate,
-        })
-        .eq("key", "badge_cutoff_date");
+      const { error } = await staffRequest("settingsWrite", {value:badgeCutoffDate});
 
       if (error) throw error;
 

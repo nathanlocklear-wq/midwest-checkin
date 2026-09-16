@@ -3,40 +3,36 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import AppLayout from "@/components/AppLayout";
-import { supabase } from "@/lib/supabase";
+import { staffRequest } from "@/lib/staff-api";
+import type { Attendee } from "@/lib/attendees";
 
 export default function EditAttendeePage() {
   const { id } = useParams();
   const router = useRouter();
 
-  const [attendee, setAttendee] = useState<any>(null);
+  const [attendee, setAttendee] = useState<Attendee | null>(null);
 
   useEffect(() => {
     load();
   }, []);
 
   async function load() {
-    const { data } = await supabase
-      .from("attendees")
-      .select("*")
-      .eq("id", id)
-      .single();
+    const { data } = await staffRequest<Attendee>("get", {id});
 
     setAttendee(data);
   }
 
   async function save() {
-    const { error } = await supabase
-      .from("attendees")
-      .update({
+    if (!attendee) return;
+    const { error } = await staffRequest("update", {id, changes: {
         company: attendee.company,
         email: attendee.email,
         shirt_size: attendee.shirt_size,
         badge_still_needed: attendee.badge_still_needed,
         presenting: attendee.presenting,
-      })
-      .eq("id", id);
+      }});
 
+    if (error) { alert(error.message); return; }
     if (!error) {
       alert("Saved!");
       router.push("/admin/attendees");
