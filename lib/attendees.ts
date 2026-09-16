@@ -1,4 +1,4 @@
-import { supabase } from "./supabase";
+import { staffRequest } from "./staff-api";
 
 export type Attendee = {
   id: string;
@@ -29,81 +29,33 @@ export type Attendee = {
 };
 
 export async function getAttendees() {
-  const { data, error } = await supabase
-    .from("attendees")
-    .select("*")
-    .order("last_name", { ascending: true });
-
-  if (error) throw error;
-
-  return (data ?? []) as Attendee[];
+  const {data,error} = await staffRequest<Attendee[]>("list");
+  if (error) throw new Error(error.message);
+  return data ?? [];
 }
 
 export async function searchAttendees(search: string) {
-  const value = search.trim().replace(/[%,().*\\]/g, " " ).trim().slice(0, 100);
-
-  if (!value) return [];
-
-  const { data, error } = await supabase
-    .from("attendees")
-    .select("*")
-    .or(
-      [
-        `full_name.ilike.%${value}%`,
-        `email.ilike.%${value}%`,
-        `company.ilike.%${value}%`,
-      ].join(",")
-    )
-    .order("last_name", { ascending: true })
-    .limit(25);
-
-  if (error) throw error;
-
-  return (data ?? []) as Attendee[];
+  const {data,error} = await staffRequest<Attendee[]>("search", {search:search.trim().slice(0,100)});
+  if (error) throw new Error(error.message);
+  return data ?? [];
 }
 
 export async function findAttendee(email: string) {
-  const { data, error } = await supabase
-    .from("attendees")
-    .select("*")
-    .eq("email", email.trim().toLowerCase())
-    .maybeSingle();
-
-  if (error || !data) return null;
-
-  return data as Attendee;
+  const {data,error} = await staffRequest<Attendee>("find", {email:email.trim().toLowerCase()});
+  if (error) throw new Error(error.message);
+  return data;
 }
 
 export async function checkInAttendee(id: string) {
-  const { data, error } = await supabase
-    .from("attendees")
-    .update({
-      checked_in: true,
-      checked_in_at: new Date().toISOString(),
-    })
-    .eq("id", id)
-    .select()
-    .single();
-
-  if (error) throw error;
-
-  return data as Attendee;
+  const {data,error} = await staffRequest<Attendee>("checkin", {id,checked:true});
+  if (error || !data) throw new Error(error?.message ?? "Attendee not found");
+  return data;
 }
 
 export async function undoCheckInAttendee(id: string) {
-  const { data, error } = await supabase
-    .from("attendees")
-    .update({
-      checked_in: false,
-      checked_in_at: null,
-    })
-    .eq("id", id)
-    .select()
-    .single();
-
-  if (error) throw error;
-
-  return data as Attendee;
+  const {data,error} = await staffRequest<Attendee>("checkin", {id,checked:false});
+  if (error || !data) throw new Error(error?.message ?? "Attendee not found");
+  return data;
 }
 
 export async function refreshAttendees() {
@@ -133,39 +85,19 @@ export async function getDuplicateAttendees() {
 }
 
 export async function getBadgeStillNeededCount() {
-  const { count, error } = await supabase
-    .from("attendees")
-    .select("*", { count: "exact", head: true })
-    .eq("badge_still_needed", true);
-
-  if (error) throw error;
-
+  const {count,error} = await staffRequest<null>("count", {filter:"badge_still_needed"});
+  if (error) throw new Error(error.message);
   return count ?? 0;
 }
 
 export async function getCheckedInCount() {
-  const { count, error } = await supabase
-    .from("attendees")
-    .select("*", { count: "exact", head: true })
-    .eq("checked_in", true);
-
-  if (error) throw error;
-
+  const {count,error} = await staffRequest<null>("count", {filter:"checked_in"});
+  if (error) throw new Error(error.message);
   return count ?? 0;
 }
 
 export async function markBadgePrinted(id: string) {
-  const { data, error } = await supabase
-    .from("attendees")
-    .update({
-      badge_still_needed: false,
-      badge_printed_at: new Date().toISOString(),
-    })
-    .eq("id", id)
-    .select()
-    .single();
-
-  if (error) throw error;
-
-  return data as Attendee;
+  const {data,error} = await staffRequest<Attendee>("badge", {id});
+  if (error || !data) throw new Error(error?.message ?? "Attendee not found");
+  return data;
 }

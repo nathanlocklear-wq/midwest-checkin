@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import AppLayout from "@/components/AppLayout";
-import { supabase } from "@/lib/supabase";
+import { staffRequest } from "@/lib/staff-api";
 import type { Attendee } from "@/lib/attendees";
 
 export default function BadgePage() {
@@ -17,28 +17,20 @@ export default function BadgePage() {
   async function loadAttendees() {
     setLoading(true);
 
-    const { data, error } = await supabase
-      .from("attendees")
-      .select("*")
-      .eq("badge_still_needed", true)
-      .order("last_name");
+    const { data, error } = await staffRequest<Attendee[]>("list");
 
+    if (error) { alert(error.message); return; }
     if (!error) {
-      setAttendees((data ?? []) as Attendee[]);
+      setAttendees((data ?? []).filter(a => a.badge_still_needed));
     }
 
     setLoading(false);
   }
 
   async function badgePrinted(id: string) {
-    const { error } = await supabase
-      .from("attendees")
-      .update({
-        badge_still_needed: false,
-        badge_printed_at: new Date().toISOString(),
-      })
-      .eq("id", id);
+    const { error } = await staffRequest("badge", {id});
 
+    if (error) { alert(error.message); return; }
     if (!error) {
       loadAttendees();
     }

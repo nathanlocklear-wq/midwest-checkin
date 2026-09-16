@@ -13,7 +13,7 @@ import {
 
 import AppLayout from "@/components/AppLayout";
 import { mergeAttendees } from "@/lib/mergeAttendees";
-import { supabase } from "@/lib/supabase";
+import { staffRequest } from "@/lib/staff-api";
 
 export default function AdminPage() {
   const router = useRouter();
@@ -78,11 +78,7 @@ async function loadDashboard() {
       const eventbrite = await parseCsv(eventbriteFile);
       const hubspot = await parseCsv(hubspotFile);
 
-      const { data: setting, error: settingsError } = await supabase
-  .from("settings")
-  .select("value")
-  .eq("key", "badge_cutoff_date")
-  .single();
+      const { data: setting, error: settingsError } = await staffRequest<{value:string}>("settingsRead");
 
 if (settingsError || !setting) {
   throw new Error(
@@ -97,18 +93,9 @@ const attendees = mergeAttendees(
 );
 const duplicateGroups = findDuplicates(attendees);
 
-      const { error: deleteError } = await supabase
-        .from("attendees")
-        .delete()
-        .neq("id", "");
-
-      if (deleteError) throw deleteError;
-
-      const { error: insertError } = await supabase
-        .from("attendees")
-        .insert(attendees);
-
-      if (insertError) throw insertError;
+      if (!confirm("Add " + attendees.length + " registrations? Existing registrations and check-ins will be kept. Importing the same file again may create duplicates.")) return;
+      const { error: insertError } = await staffRequest("import", {rows:attendees});
+      if (insertError) throw new Error(insertError.message);
       const badgeCount = attendees.filter(
   (a) => a.badge_still_needed
 ).length;
@@ -188,7 +175,7 @@ alert(
 
             <div>
               <h2 className="text-3xl font-black text-[#02112f]">
-                Import Attendees
+                Add Registrations
               </h2>
 
               <p className="mt-2 text-slate-500">
@@ -290,7 +277,7 @@ alert(
             disabled={loading}
             className="mt-10 w-full rounded-2xl bg-[#02112f] py-5 text-2xl font-black text-white transition hover:bg-[#0b214f] disabled:bg-gray-400"
           >
-            {loading ? "Importing..." : "📥 Import Attendees"}
+            {loading ? "Importing..." : "📥 Add Registrations"}
           </button>
 
         </div>

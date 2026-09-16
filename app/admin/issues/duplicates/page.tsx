@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import AppLayout from "@/components/AppLayout";
 import { getAttendees } from "@/lib/attendees";
 import { findDuplicates } from "@/lib/findDuplicates";
-import { supabase } from "@/lib/supabase";
+import { staffRequest } from "@/lib/staff-api";
 
 import type { Attendee } from "@/lib/attendees";
 import type { DuplicateGroup } from "@/lib/findDuplicates";
@@ -40,11 +40,9 @@ export default function DuplicateRegistrationsPage() {
 
     if (!confirmed) return;
 
-    const { error } = await supabase
-      .from("attendees")
-      .delete()
-      .eq("id", id);
+    const { error } = await staffRequest("delete", {id});
 
+    if (error) { alert(error.message); return; }
     if (!error) {
       loadDuplicates();
     }
